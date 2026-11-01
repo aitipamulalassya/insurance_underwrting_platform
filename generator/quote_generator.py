@@ -196,10 +196,13 @@ def main():
                 start_date + timedelta(days=30)
             ).isoformat(),
             "created_at": reference_date.isoformat(),
+
+            # Original quotes are not associated with renewals.
+            "renewal_id": "",
         })
 
         # Allocate the total premium across selected coverages.
-        # Currently each coverage receives an equal share because
+        # Each coverage receives an equal share because
         # each coverage uses the same coverage limit.
 
         coverage_limits = [

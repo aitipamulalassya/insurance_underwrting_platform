@@ -1,1 +1,130 @@
-import {useEffect,useState} from 'react';import {api,getError,rowsFrom,money,dateTime} from '../lib/api';import {PageHeader,Alert,DataTable,Loading,StatusPill} from '../components/Shared';export default function CustomerPortal(){const [rows,setRows]=useState<any[]>([]),[error,setError]=useState(''),[loading,setLoading]=useState(true),[ref,setRef]=useState(''),[busy,setBusy]=useState('');const load=()=>api.get('/api/customer/quotes').then(r=>setRows(rowsFrom(r.data))).catch(e=>setError(getError(e))).finally(()=>setLoading(false));useEffect(()=>{load()},[]);const accept=async(id:string)=>{setBusy(id);try{await api.post(`/api/quotes/${id}/accept`,{customer_reference:ref||`CUSTOMER-${id}`});setRef('');await load()}catch(e){setError(getError(e))}finally{setBusy('')}};const pay=async(row:any)=>{setBusy(row.quote_id);try{await api.post(`/api/quotes/${row.quote_id}/payments`,{amount:Number(row.calculated_premium),payment_reference:`CUSTOMER-PAY-${row.quote_id}`});await load()}catch(e){setError(getError(e))}finally{setBusy('')}};return <><PageHeader title="My insurance quotes" subtitle="View quotes linked to your customer account and accept an offer when you are ready."/>{error&&<Alert kind="error">{error}</Alert>}<div className="panel p-5">{loading?<Loading/>:<DataTable rows={rows} columns={[{key:'quote_id',label:'Quote reference'},{key:'product_id',label:'Product'},{key:'quote_status',label:'Status',render:r=><StatusPill value={r.quote_status}/>},{key:'calculated_premium',label:'Premium',render:r=>money(r.calculated_premium)},{key:'created_at',label:'Created',render:r=>dateTime(r.created_at)},{key:'payment_status',label:'Payment',render:r=>r.payment_status?<StatusPill value={r.payment_status}/>:r.quote_status==='ACCEPTED'?<button disabled={busy===r.quote_id} className="btn-secondary" onClick={()=>pay(r)}>{busy===r.quote_id?'Processing…':'Pay premium'}</button>:'—'},{key:'actions',label:'Action',render:r=>r.quote_status==='OFFERED'?<button disabled={busy===r.quote_id} className="btn-primary" onClick={()=>accept(r.quote_id)}>{busy===r.quote_id?'Processing…':'Accept quote'}</button>:'—'}]}/>}</div><p className="mt-3 text-xs text-slate-500">This portal only lists quotes belonging to the applicant linked to your signed-in account. You can accept an offer and record its premium payment here. An operations user must verify the payment before a policy is issued.</p></>}
+import { useEffect, useState } from "react";
+import { api, getError, rowsFrom, money, dateTime } from "../lib/api";
+import {
+  PageHeader,
+  Alert,
+  DataTable,
+  Loading,
+  StatusPill,
+} from "../components/Shared";
+export default function CustomerPortal() {
+  const [rows, setRows] = useState<any[]>([]),
+    [error, setError] = useState(""),
+    [loading, setLoading] = useState(true),
+    [ref, setRef] = useState(""),
+    [busy, setBusy] = useState("");
+  const load = () =>
+    api
+      .get("/api/customer/quotes")
+      .then((r) => setRows(rowsFrom(r.data)))
+      .catch((e) => setError(getError(e)))
+      .finally(() => setLoading(false));
+  useEffect(() => {
+    load();
+  }, []);
+  const accept = async (id: string) => {
+    setBusy(id);
+    try {
+      await api.post(`/api/quotes/${id}/accept`, {
+        customer_reference: ref || `CUSTOMER-${id}`,
+      });
+      setRef("");
+      await load();
+    } catch (e) {
+      setError(getError(e));
+    } finally {
+      setBusy("");
+    }
+  };
+  const pay = async (row: any) => {
+    setBusy(row.quote_id);
+    try {
+      await api.post(`/api/quotes/${row.quote_id}/payments`, {
+        amount: Number(row.calculated_premium),
+        payment_reference: `CUSTOMER-PAY-${row.quote_id}`,
+      });
+      await load();
+    } catch (e) {
+      setError(getError(e));
+    } finally {
+      setBusy("");
+    }
+  };
+  return (
+    <>
+      <PageHeader
+        title="My insurance quotes"
+        subtitle="View quotes linked to your customer account and accept an offer when you are ready."
+      />
+      {error && <Alert kind="error">{error}</Alert>}
+      <div className="panel p-5">
+        {loading ? (
+          <Loading />
+        ) : (
+          <DataTable
+            rows={rows}
+            columns={[
+              { key: "quote_id", label: "Quote reference" },
+              { key: "product_id", label: "Product" },
+              {
+                key: "quote_status",
+                label: "Status",
+                render: (r) => <StatusPill value={r.quote_status} />,
+              },
+              {
+                key: "calculated_premium",
+                label: "Premium",
+                render: (r) => money(r.calculated_premium),
+              },
+              {
+                key: "created_at",
+                label: "Created",
+                render: (r) => dateTime(r.created_at),
+              },
+              {
+                key: "payment_status",
+                label: "Payment",
+                render: (r) =>
+                  r.payment_status ? (
+                    <StatusPill value={r.payment_status} />
+                  ) : r.quote_status === "ACCEPTED" ? (
+                    <button
+                      disabled={busy === r.quote_id}
+                      className="btn-secondary"
+                      onClick={() => pay(r)}
+                    >
+                      {busy === r.quote_id ? "Processing…" : "Pay premium"}
+                    </button>
+                  ) : (
+                    "—"
+                  ),
+              },
+              {
+                key: "actions",
+                label: "Action",
+                render: (r) =>
+                  r.quote_status === 'APPROVED' ? (
+                    <button
+                      disabled={busy === r.quote_id}
+                      className="btn-primary"
+                      onClick={() => accept(r.quote_id)}
+                    >
+                      {busy === r.quote_id ? "Processing…" : "Accept quote"}
+                    </button>
+                  ) : (
+                    "—"
+                  ),
+              },
+            ]}
+          />
+        )}
+      </div>
+      <p className="mt-3 text-xs text-slate-500">
+        This portal only lists quotes belonging to the applicant linked to your
+        signed-in account. You can accept an offer and record its premium
+        payment here. An operations user must verify the payment before a policy
+        is issued.
+      </p>
+    </>
+  );
+}

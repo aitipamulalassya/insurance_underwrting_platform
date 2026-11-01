@@ -1,6 +1,7 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, Field
 
+from api.database import get_connection
 from api.schemas import PaymentCreateRequest
 from api.services.payment_service import (
     record_payment,
@@ -12,6 +13,37 @@ router = APIRouter()
 
 class PaymentConfirmationRequest(BaseModel):
     verifier_reference: str = Field(min_length=1, max_length=100)
+
+
+@router.get("/payments")
+def list_payments(
+    status: str = Query(default="PENDING", pattern="^(PENDING|CONFIRMED|FAILED)$"),
+    limit: int = Query(default=100, ge=1, le=500),
+):
+    """List payments for authorized operations UI selection."""
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT
+                    payment_id,
+                    quote_id,
+                    amount,
+                    currency,
+                    payment_status,
+                    payment_reference,
+                    recorded_at,
+                    confirmed_at
+                FROM payments
+                WHERE payment_status = %s
+                ORDER BY recorded_at DESC
+                LIMIT %s
+                """,
+                (status, limit),
+            )
+            payments = cur.fetchall()
+
+    return {"count": len(payments), "payments": payments}
 
 
 @router.post("/quotes/{quote_id}/payments", status_code=201)

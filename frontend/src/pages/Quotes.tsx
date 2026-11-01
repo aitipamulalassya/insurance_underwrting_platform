@@ -140,7 +140,7 @@ export default function Quotes({ user }: { user: any }) {
         )}
       </div>
       {user.role === "ADMIN" && (
-        <QuoteActions onError={setError} onDone={load} />
+        <QuoteActions quotes={rows} onError={setError} onDone={load} />
       )}
       {modal === "detail" && detail && (
         <Modal
@@ -407,57 +407,114 @@ function CreateQuote({
 }
 
 function QuoteActions({
+  quotes,
   onError,
   onDone,
 }: {
+  quotes: any[];
   onError: (s: string) => void;
   onDone: () => void;
 }) {
-  const [quoteId, setQuoteId] = useState(""),
-    [customerRef, setCustomerRef] = useState(""),
-    [amount, setAmount] = useState(""),
-    [paymentRef, setPaymentRef] = useState(""),
-    [paymentId, setPaymentId] = useState(""),
-    [verifierRef, setVerifierRef] = useState(""),
-    [busy, setBusy] = useState(false);
+  const [quoteId, setQuoteId] = useState("");
+  const [customerRef, setCustomerRef] = useState("");
+  const [paymentAmount, setPaymentAmount] = useState("");
+  const [paymentRef, setPaymentRef] = useState("");
+  const [paymentId, setPaymentId] = useState("");
+  const [pendingPayments, setPendingPayments] = useState<any[]>([]);
+  const [verifierRef, setVerifierRef] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [paymentLoading, setPaymentLoading] = useState(false);
+
+  const approvedQuotes = quotes.filter(
+    (q) => q.quote_status === "APPROVED" && !q.applicant_accepted_at,
+  );
+  const acceptedQuotes = quotes.filter(
+    (q) => q.quote_status === "ACCEPTED",
+  );
+
+  const selectedQuote = quotes.find((q) => q.quote_id === quoteId);
+
+  const loadPendingPayments = async () => {
+    setPaymentLoading(true);
+    try {
+      const response = await api.get("/api/payments?status=PENDING&limit=100");
+      setPendingPayments(rowsFrom(response.data, "payments"));
+    } catch (e) {
+      onError(getError(e));
+    } finally {
+      setPaymentLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadPendingPayments();
+  }, []);
+
+  useEffect(() => {
+    if (selectedQuote) {
+      setPaymentAmount(String(selectedQuote.calculated_premium ?? ""));
+    } else {
+      setPaymentAmount("");
+    }
+  }, [quoteId, quotes]);
+
   const run = async (fn: () => Promise<any>) => {
     setBusy(true);
     onError("");
     try {
-      await fn();
-      onDone();
+      const response = await fn();
+      if (response?.data?.payment_id) {
+        setPaymentId(response.data.payment_id);
+      }
+      await onDone();
+      await loadPendingPayments();
     } catch (e) {
       onError(getError(e));
     } finally {
       setBusy(false);
     }
   };
+
   return (
     <div className="panel mt-5 p-5">
       <h2 className="font-display font-bold">
         Quote acceptance and payment actions
       </h2>
       <p className="mt-1 text-xs text-slate-500">
-        Use an existing quote reference. Actions call the existing acceptance
-        and payment APIs.
+        Select existing quotes and pending payments. Premium and payment IDs
+        are loaded from the database; reference fields are entered by the user.
       </p>
+
       <div className="mt-4 grid gap-3 md:grid-cols-2">
         <label>
-          <span className="field-label">Quote ID</span>
-          <input
+          <span className="field-label">Approved quote</span>
+          <select
             className="field"
             value={quoteId}
             onChange={(e) => setQuoteId(e.target.value)}
-            placeholder="QTE-2026-…"
-          />
+            disabled={busy}
+          >
+            <option value="">Select an approved quote</option>
+            {approvedQuotes.map((q) => (
+              <option key={q.quote_id} value={q.quote_id}>
+                {q.quote_id} — {money(q.calculated_premium, q.currency || "INR")}
+              </option>
+            ))}
+          </select>
+          {approvedQuotes.length === 0 && (
+            <span className="mt-1 block text-xs text-slate-500">
+              No approved quotes are available in the currently loaded records.
+            </span>
+          )}
         </label>
         <label>
-          <span className="field-label">Customer reference</span>
+          <span className="field-label">Customer acceptance reference</span>
           <input
             className="field"
             value={customerRef}
             onChange={(e) => setCustomerRef(e.target.value)}
-            placeholder="Customer acceptance reference"
+            placeholder="Enter customer reference"
+            disabled={busy}
           />
         </label>
       </div>
@@ -472,9 +529,26 @@ function QuoteActions({
           )
         }
       >
-        Accept quote
+        {busy ? "Processing…" : "Accept quote"}
       </button>
+
       <div className="mt-5 grid gap-3 border-t border-slate-100 pt-4 md:grid-cols-2">
+        <label>
+          <span className="field-label">Accepted quote</span>
+          <select
+            className="field"
+            value={acceptedQuotes.some((q) => q.quote_id === quoteId) ? quoteId : ""}
+            onChange={(e) => setQuoteId(e.target.value)}
+            disabled={busy}
+          >
+            <option value="">Select an accepted quote</option>
+            {acceptedQuotes.map((q) => (
+              <option key={q.quote_id} value={q.quote_id}>
+                {q.quote_id} — {money(q.calculated_premium, q.currency || "INR")}
+              </option>
+            ))}
+          </select>
+        </label>
         <label>
           <span className="field-label">Payment amount</span>
           <input
@@ -482,46 +556,65 @@ function QuoteActions({
             type="number"
             min="0.01"
             step="0.01"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
+            value={paymentAmount}
+            readOnly
+            placeholder="Select an accepted quote"
           />
         </label>
-        <label>
-          <span className="field-label">Payment reference</span>
+        <label className="md:col-span-2">
+          <span className="field-label">Simulated payment reference</span>
           <input
             className="field"
             value={paymentRef}
             onChange={(e) => setPaymentRef(e.target.value)}
+            placeholder="Enter simulated payment reference"
+            disabled={busy}
           />
         </label>
       </div>
       <button
         className="btn-secondary mt-3"
-        disabled={busy || !quoteId || !amount || !paymentRef}
+        disabled={
+          busy ||
+          !acceptedQuotes.some((q) => q.quote_id === quoteId) ||
+          !paymentAmount ||
+          !paymentRef
+        }
         onClick={() =>
           run(() =>
-            api
-              .post(`/api/quotes/${quoteId}/payments`, {
-                amount: Number(amount),
-                payment_reference: paymentRef,
-              })
-              .then((r) => {
-                if (r.data?.payment_id) setPaymentId(r.data.payment_id);
-              }),
+            api.post(`/api/quotes/${quoteId}/payments`, {
+              amount: Number(paymentAmount),
+              payment_reference: paymentRef,
+            }),
           )
         }
       >
-        Record payment
+        {busy ? "Processing…" : "Record payment"}
       </button>
+
       <div className="mt-5 grid gap-3 border-t border-slate-100 pt-4 md:grid-cols-2">
         <label>
-          <span className="field-label">Payment ID</span>
-          <input
+          <span className="field-label">Pending payment</span>
+          <select
             className="field"
             value={paymentId}
             onChange={(e) => setPaymentId(e.target.value)}
-            placeholder="Returned after payment creation"
-          />
+            disabled={busy || paymentLoading}
+          >
+            <option value="">
+              {paymentLoading ? "Loading pending payments…" : "Select a pending payment"}
+            </option>
+            {pendingPayments.map((p) => (
+              <option key={p.payment_id} value={p.payment_id}>
+                {p.payment_id} — {p.quote_id} — {money(p.amount, p.currency || "INR")}
+              </option>
+            ))}
+          </select>
+          {!paymentLoading && pendingPayments.length === 0 && (
+            <span className="mt-1 block text-xs text-slate-500">
+              No pending payments found.
+            </span>
+          )}
         </label>
         <label>
           <span className="field-label">Verifier reference</span>
@@ -529,22 +622,34 @@ function QuoteActions({
             className="field"
             value={verifierRef}
             onChange={(e) => setVerifierRef(e.target.value)}
+            placeholder="Enter operations verification reference"
+            disabled={busy}
           />
         </label>
       </div>
-      <button
-        className="btn-primary mt-3"
-        disabled={busy || !paymentId || !verifierRef}
-        onClick={() =>
-          run(() =>
-            api.post(`/api/payments/${paymentId}/confirm`, {
-              verifier_reference: verifierRef,
-            }),
-          )
-        }
-      >
-        {busy ? "Processing…" : "Confirm payment"}
-      </button>
+      <div className="mt-3 flex flex-wrap gap-2">
+        <button
+          className="btn-secondary"
+          type="button"
+          onClick={loadPendingPayments}
+          disabled={busy || paymentLoading}
+        >
+          {paymentLoading ? "Refreshing…" : "Refresh pending payments"}
+        </button>
+        <button
+          className="btn-primary"
+          disabled={busy || !paymentId || !verifierRef}
+          onClick={() =>
+            run(() =>
+              api.post(`/api/payments/${paymentId}/confirm`, {
+                verifier_reference: verifierRef,
+              }),
+            )
+          }
+        >
+          {busy ? "Processing…" : "Confirm payment"}
+        </button>
+      </div>
     </div>
   );
 }
