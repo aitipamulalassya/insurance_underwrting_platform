@@ -1,210 +1,209 @@
 # YottaFlex Insurance Underwriting Platform
 
-A web application for managing insurance underwriting workflows, from applicant and asset data through quote generation, risk assessment, premium calculation, underwriting review, payment processing, and policy operations.
+A role-based insurance workflow application for applicant and asset
+data, quote generation, eligibility and risk assessment, premium
+calculation, underwriting review, customer acceptance, simulated payment
+verification, and policy operations.
 
-## 1. Problem this project addresses
+## 1. Problem
 
-Insurance submissions involve multiple related records and decisions. Teams need to check whether an applicant and insured asset are eligible, calculate risk and premium, record an underwriting decision, and track the quote through payment and policy operations.
+Insurance underwriting involves connected records, eligibility rules,
+risk factors, premium calculations, approvals, customer responses, and
+operational hand-offs. This project brings these steps into one
+traceable workflow and separates system recommendations from human
+underwriting decisions.
 
-This project brings those activities into one workflow and separates responsibilities across four roles:
+## Roles and Responsibilities
 
-- **Customer** – views their own quotes and policies, responds to eligible offers, and initiates the simulated payment flow.
-- **Risk Reviewer / Underwriter** – reviews risk information and records an underwriting decision.
-- **Operations Analyst** – handles operational steps such as payment verification and policy processing.
-- **Admin** – monitors users, records, workflow activity, and operational exceptions.
+The system supports four main user roles, each with specific responsibilities.
 
-Actual permissions must be enforced by the backend APIs, not only by hiding frontend controls.
-
-## 2. Main capabilities
-
-- Applicant, insured asset, product, coverage option, and risk-factor master data.
-- Quote generation and quote management.
-- Risk assessment and risk categorization.
-- Premium calculation using product rates and risk loading.
-- Underwriting review and decision tracking.
-- Simulated payment workflow.
-- Policy, endorsement, and renewal workflows.
-- Anomaly monitoring and investigation.
-
-
-**Payment note:** The payment workflow is simulated. This project does not claim to integrate a live payment gateway.
-
-## 3. Technology
-
-| Layer | Technology |
+| Role | Responsibilities |
 |---|---|
-| Frontend | React, TypeScript, Vite |
-| Backend | Python, FastAPI |
-| Database | PostgreSQL |
+| **Customer** | View available quotes, review coverage and premium details, accept or reject a quote, and complete the simulated payment process. |
+| **Operations Analyst** | Monitor underwriting operations, verify payment status, confirm payment records, and support policy issuance and related operational activities. |
+| **Risk / Compliance Reviewer** | Review risk assessments, examine underwriting decisions and exceptions, and review cases that require additional approval. |
+| **System Administrator** | Manage user access and roles, oversee system configuration, and monitor overall application operations. |
 
-## 4. High-level workflow
+### Role-Based Access
 
-1. Create or select an applicant and insured asset.
-2. Select an insurance product and eligible coverage.
-3. Generate a quote.
-4. Calculate risk and premium.
-5. Route the quote for underwriting review when required.
-6. Record the authorized human underwriting decision.
-7. Allow the customer to respond to an approved quote.
-8. Customer initiates the simulated payment.
-9. Operations verifies the payment.
-10. An authorized Operations Analyst processes policy issuance.
-11. Manage subsequent endorsements and renewal offers through their respective review and operational steps.
+- Customers can access their own quote and policy-related information.
+- Operations Analysts handle payment verification and operational workflows.
+- Risk / Compliance Reviewers handle risk-related reviews and exceptions.
+- Administrators manage users and system-level access.
 
-The automated risk recommendation and the final human underwriting decision are separate concepts. A recommendation should not be presented as a human approval.
+Each role is intended to support clear responsibility, controlled access, and traceability throughout the underwriting workflow.
+## 2. Assumptions and key decisions
 
-## 5. Assumptions and key decisions
+-   The project uses synthetic applicant, asset, product, coverage, and
+    risk data.
+-   Product eligibility, risk thresholds, and premium rates are
+    configurable assignment-level rules.
+-   Risk and premium calculations are deterministic and rule-based; the
+    risk engine is not an LLM.
+-   Payment is simulated. No real payment gateway or money transfer is
+    involved.
+-   Roles separate customer, risk reviewer, operations analyst, and
+    administrator activities.
 
-- The solution models a simplified insurance underwriting workflow for the assignment; it is not a complete production insurance core system.
-- Product rates, coverage limits, risk factors, and eligibility rules are based on the project data and configured business logic.
-- Payment is simulated so the workflow can be demonstrated without processing real money.
-- Underwriting decisions are kept separate from operational tasks such as payment verification and policy issuance.
-- Role permissions and customer data ownership should be checked by backend endpoints.
-- Existing database records should be preserved during development and troubleshooting.
+## 3. Trade-offs
 
-### Trade-offs
+-   **Rule-based risk engine:** transparent and testable, but rules and
+    thresholds need insurance-domain validation.
+-   **Synthetic data:** makes the workflow reproducible, but does not
+    represent a real insurer's portfolio.
+-   **Simulated payment:** demonstrates payment verification and policy
+    issuance without gateway integration.
+-   **Assignment scope:** focuses on the required workflow rather than
+    production-scale security, integrations, and operations.
 
-- **Rule-based calculations:** Risk and premium logic are easier to inspect and test than an opaque end-to-end prediction, but the configured rules need domain review before real-world use.
-- **Simulated payments:** This makes the operational journey demonstrable without a payment provider, but it does not validate real payment settlement, refunds, or gateway security.
-- **Assignment-focused scope:** The implementation prioritizes the required workflow over production-scale infrastructure, exhaustive edge-case coverage, and external integrations.
+## 4. Technology
 
-## 6. Project structure
+-   Frontend: React, TypeScript, Vite
+-   Backend: Python, FastAPI
+-   Database: PostgreSQL with the `pgvector` extension
+-   Data generation: Python CSV generators
 
-The project contains separate frontend, backend, and generator areas. The exact files may vary by branch or submitted package.
+## 5. Prerequisites
 
-```text
-insurance_underwriting_master_generator/
-├── frontend/       # React + TypeScript + Vite application
-├── generator/      # Master-data and underwriting generation modules
-├── requirements.txt
-└── ...
+Install Python 3.12 or a compatible version, Node.js 20+ with npm, PostgreSQL with the `pgvector` extension, and Git. Start your local PostgreSQL server before setting up the database.
+
+## 6. Setup and run the application
+
+### Step 1: Create the PostgreSQL database
+
+Open pgAdmin and connect to your PostgreSQL server. In the Query Tool, run:
+
+```sql
+CREATE DATABASE insurance_underwriting_db;
 ```
 
-## 7. Prerequisites
+Connect to the new `insurance_underwriting_db` database. Run these SQL files in this order:
 
-Install the following before running the project:
+1. `database/schema.sql`
+2. `database/migrations.sql`
 
-- Python (a version compatible with the packages in `requirements.txt`)
-- Node.js and npm
-- PostgreSQL
-- Git (if cloning the repository)
+The PostgreSQL server must have the `pgvector` extension installed.
 
+### Step 2: Create and configure the local environment
 
-## 8. Configuration
+From the project root, create and activate a Python virtual environment:
 
-1. Open the project folder.
-2. Check the backend configuration and any provided `.env.example` or setup configuration file.
-3. Create the local environment file in the location expected by the backend.
-4. Set the PostgreSQL host, port, database name, username, and password to match your local database.
-5. Do not commit `.env` files.
-
-Use the variable names already defined by the project's configuration or example environment file. Do not rename configuration variables unless the backend code is updated to use the new names.
-
-**Database safety:** Point the application to a development database. If you already have project data, do not drop the database or delete its Docker volume as a setup step. Use the database initialization or migration process supplied with the project, if present.
-
-## 9. Install and run
-
-Open a terminal in the project root.
-
-### Backend
-
-```bash
+```powershell
+python -m venv .venv
+.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
 pip install -r requirements.txt
+```
+
+Copy the environment example and update the values in `.env`:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+Configure your database connection and required settings:
+
+```env
+DATABASE_URL=postgresql://YOUR_USER:YOUR_PASSWORD@localhost:5432/insurance_underwriting_db
+JWT_SECRET=replace-with-a-long-random-secret
+GEMINI_API_KEY=your-gemini-api-key
+GEMINI_MODEL=gemini-2.5-flash
+GEMINI_EMBEDDING_MODEL=gemini-embedding-001
+```
+
+`DATABASE_URL` and `JWT_SECRET` are required. Gemini settings are used by the document/RAG assistant features. Use your own API key for those features. Do not commit `.env` or real credentials.
+
+Configure the frontend environment:
+
+```powershell
+Copy-Item frontend/.env.example frontend/.env
+```
+
+The supplied frontend example points to `http://127.0.0.1:8000`. Change `VITE_API_BASE_URL` only if your backend uses another address.
+
+### Step 3: Generate the CSV files
+
+From the project root, with the virtual environment activated, run:
+
+```powershell
+python -m generator.master_generator
+python -m generator.quote_generator
+```
+
+The generated files are saved in `data/master/` and `data/quotes/`.
+
+### Step 4: Import the CSV files into PostgreSQL
+
+In pgAdmin, open the target table, right-click it, and select **Import/Export Data**. Choose the CSV file, set the format to CSV, enable **Header**, and map the CSV columns to the database columns.
+
+Import the files in this order:
+
+| CSV file | PostgreSQL table | Expected rows |
+|---|---|---:|
+| `data/master/applicants.csv` | `applicants` | 3,000 |
+| `data/master/products.csv` | `products` | 3 |
+| `data/master/risk_factors.csv` | `risk_factors` | 7 |
+| `data/master/insured_assets.csv` | `insured_assets` | 3,000 |
+| `data/master/coverage_options.csv` | `coverage_options` | 9 |
+| `data/master/product_risk_factors.csv` | `product_risk_factors` | 18 |
+| `data/quotes/quotes.csv` | `quotes` | 4,000 |
+| `data/quotes/quote_coverages.csv` | `quote_coverages` | 9,298 |
+| `data/quotes/risk_observations.csv` | `quote_risk_observations` | 12,000 |
+
+**Important column mappings:**
+
+- In `quote_coverages.csv`, map `coverage_limit` to the database column `selected_limit`.
+- For `risk_observations.csv`, import only `quote_id`, `factor_code`, and `observed_value`. Do not import `observation_id` or `created_at`; PostgreSQL generates them.
+- Map columns by name. Do not assume the CSV and database column orders are the same.
+- If the CSV data is already imported, do not import it again.
+
+### Step 5: Run the combined underwriting process
+
+After importing all CSV files, run this command from the project root:
+
+```powershell
+python -m generator.run_combined_underwriting
+```
+
+This runs the combined product eligibility and risk assessment process and saves the underwriting recommendations.
+
+### Step 6: Run the backend
+
+From the project root, activate the virtual environment if it is not already active, then run:
+
+```powershell
+.venv\Scripts\Activate.ps1
 uvicorn api.main:app --reload
 ```
 
-The backend development server should start at the address printed by Uvicorn. If the command cannot find `api.main`, check that the terminal is in the directory expected by the project layout.
+Backend: `http://127.0.0.1:8000`
 
-### Frontend
+API documentation: `http://127.0.0.1:8000/docs`
+
+Keep this terminal running.
+
+### Step 7: Install and run the frontend
 
 Open a second terminal:
 
-```bash
+```powershell
 cd frontend
 npm install
 npm run dev
 ```
 
-Vite normally serves the development frontend at:
-
-```text
-http://localhost:5173
-```
-
-Open that address in a browser. Keep the backend and database running while using the application.
-
-### Production frontend build
-
-From the `frontend` directory:
-
-```bash
-npm run build
-```
-
-The build runs TypeScript project compilation and the Vite production build. The generated production files are written to `frontend/dist/`.
-
-A successful build confirms that the frontend compiles and bundles. It does not, by itself, prove that the backend, database, authentication, or every user workflow works end to end.
-
-## 10. Generate underwriting data (if required)
-
-From the project root, the recorded underwriting generator command is:
-
-```bash
-python -m generator.run_underwriting
-```
-
-Run data-generation commands only after checking their configuration and target database. Confirm whether a command inserts or updates records before running it against a database containing data you need to preserve.
-
-A previously recorded run processed 4,000 quotes and reported:
-- 641 APPROVE / LOW
-- 3,359 REFER
-- 0 DECLINE
-
-These are outputs from that recorded run, not guaranteed results for every dataset or configuration.
-
-## 11. Testing approach and recorded evidence
-
-Testing during development included running the data generators and calculation-engine test scripts, reviewing generated output, investigating database import errors, building the frontend, and manually reviewing application screens for different roles.
-
-Recorded test outputs include:
-
-| Check | Recorded result |
-|---|---|
-| Risk engine test | Risk score 12.0; category LOW; decision APPROVE |
-| Premium engine test | Coverage amount 1,000,000; base rate 0.025; base premium 25,000.00; risk loading 1.2000; final premium 30,000.00 |
-| Quote generation | 4,000 quotes; 9,296 quote-coverage links; 12,000 risk observations |
-| Underwriting generator | 4,000 quotes processed; 641 APPROVE / LOW, 3,359 REFER, 0 DECLINE |
-| Frontend production build | `tsc -b && vite build` completed successfully; 2,276 modules transformed |
-
-The frontend build also reported non-blocking optimization warnings about a module being both statically and dynamically imported and a minified JavaScript chunk larger than 500 KB. The build succeeded, but these warnings indicate possible future code-splitting and bundle-size improvements.
-
-These results demonstrate that the corresponding commands ran and produced the recorded outputs. They do not establish exhaustive test coverage or production readiness.
-
-## 12. Limitations and future improvements
-
-- Payment is simulated; no live payment gateway, settlement, refund, or reconciliation integration is claimed.
-- Risk and premium rules are assignment-level logic and require validation by insurance domain specialists before real-world use.
-- Further end-to-end testing is needed for edge cases, concurrent actions, authorization boundaries, and all workflow transitions.
-- UI and operational review identified improvements that may still need implementation. A recommendation should not be assumed to be completed functionality.
-- Production deployment would require additional security review, monitoring, secrets management, backups, performance testing, and operational controls.
-
-## 13. Troubleshooting
-
-**Backend cannot connect to PostgreSQL**
-- Confirm PostgreSQL is running.
-- Check the database connection settings used by the backend.
-- Confirm the database exists and the configured user has the required permissions.
-- Check the backend terminal for the exact connection error.
-
-**Frontend cannot reach the backend**
-- Confirm the backend is running.
-- Check the frontend API base URL and backend CORS configuration.
-- Check the browser developer console and backend logs.
-
-**Frontend build warning**
-- A successful build with warnings is still a successful build. Review the import strategy and bundle splitting before treating the warnings as resolved.
+Open the Vite URL shown in the terminal (normally `http://localhost:5173`).
 
 
 
----
+
+## 11. Limitations
+
+-   Payments are simulated; there is no real gateway, settlement, or
+    refund processing.
+-   Risk and eligibility rules use synthetic assignment data and are not
+    validated insurance underwriting policy.
+-   A passing unit test or frontend build does not prove every role,
+    API, and end-to-end workflow is production-ready.
+
 
