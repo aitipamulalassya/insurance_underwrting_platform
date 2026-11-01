@@ -154,7 +154,6 @@ Import the files in this order:
 
 - In `quote_coverages.csv`, map `coverage_limit` to the database column `selected_limit`.
 - For `risk_observations.csv`, import only `quote_id`, `factor_code`, and `observed_value`. Do not import `observation_id` or `created_at`; PostgreSQL generates them.
-- Map columns by name. Do not assume the CSV and database column orders are the same.
 - If the CSV data is already imported, do not import it again.
 
 ### Step 5: Run the combined underwriting process
@@ -195,9 +194,42 @@ npm run dev
 Open the Vite URL shown in the terminal (normally `http://localhost:5173`).
 
 
+## 8. Testing and Verification
 
+Run the following commands from the project root to test the main components:
 
-## 11. Limitations
+```powershell
+python -m generator.test_risk_engine
+python -m generator.test_premium_engine
+python -m generator.test_eligibility_engine
+python -m generator.test_underwriting_orchestrator
+```
+
+Run the backend test suite, if available:
+
+```powershell
+pytest
+```
+
+Build the frontend:
+
+```powershell
+cd frontend
+npm run build
+```
+
+### Expected verification
+
+- Master data and quote CSV files are generated successfully.
+- CSV records are imported into their corresponding PostgreSQL tables.
+- Eligibility and risk assessment produce underwriting recommendations.
+- Premium calculations return the expected results for the tested inputs.
+- The backend starts and exposes its API documentation.
+- The frontend builds and runs successfully.
+
+These checks cover individual components and basic application setup; they do not guarantee that every end-to-end workflow is production-ready.
+
+## 9. Limitations
 
 -   Payments are simulated; there is no real gateway, settlement, or
     refund processing.
