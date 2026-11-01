@@ -238,4 +238,3 @@ I remained responsible for deciding how the solution should work, adapting sugge
 
 ---
 
-*Prepared as a representative AI prompt history and developer contribution record for the YottaFlex assignment. The prompts are reconstructed summaries of the assistance used during development, not an exhaustive verbatim chat export.*
