@@ -1,0 +1,17 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+:root { font-family: 'DM Sans', sans-serif; color: #17233c; background: #f6f8fc; font-synthesis: none; }
+* { box-sizing: border-box; }
+body { margin: 0; min-width: 320px; }
+button, input, select, textarea { font: inherit; }
+::selection { background: #c9f2ec; color: #123e3a; }
+@layer components {
+  .panel { @apply rounded-2xl border border-line bg-white shadow-soft; }
+  .field { @apply w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-ink outline-none transition focus:border-teal focus:ring-4 focus:ring-teal/10; }
+  .field-label { @apply mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500; }
+  .btn-primary { @apply inline-flex items-center justify-center gap-2 rounded-xl bg-navy px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50; }
+  .btn-secondary { @apply inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:opacity-50; }
+  .table-head { @apply bg-slate-50 text-left text-[11px] font-bold uppercase tracking-wider text-slate-500; }
+  .table-cell { @apply whitespace-nowrap px-4 py-3.5 text-sm text-slate-700; }
+}

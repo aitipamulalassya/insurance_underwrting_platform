@@ -1,0 +1,4 @@
+product_id,product_code,product_name,product_line,description,min_asset_value,max_asset_value,min_asset_age_years,max_asset_age_years,base_rate,is_active,effective_from,effective_to
+PRD-2026-000001,MOTOR-STD,Motor Insurance,MOTOR,Synthetic private motor insurance product.,50000.00,10000000.00,0,20,0.025000,True,2026-01-01,
+PRD-2026-000002,HOME-STD,Home Insurance,HOME,Synthetic residential property insurance product.,500000.00,100000000.00,0,80,0.004000,True,2026-01-01,
+PRD-2026-000003,BUSINESS-STD,Business Property Insurance,BUSINESS,Synthetic commercial property insurance product.,1000000.00,500000000.00,0,100,0.006000,True,2026-01-01,

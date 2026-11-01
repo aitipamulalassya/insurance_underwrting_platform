@@ -1,0 +1,8 @@
+risk_factor_id,factor_code,factor_name,description,factor_category,data_type,is_required,effective_from,effective_to
+RSK-2026-000001,CLAIM_COUNT_3Y,Claims in Previous 3 Years,Number of claims reported in the previous three years.,CLAIMS,NUMERIC,True,2026-01-01,
+RSK-2026-000002,ASSET_AGE,Asset Age,Age of the insured asset in years.,ASSET,NUMERIC,True,2026-01-01,
+RSK-2026-000003,ASSET_VALUE,Asset Value,Declared value of the insured asset in INR.,ASSET,NUMERIC,True,2026-01-01,
+RSK-2026-000004,LOCATION_RISK,Location Risk Score,Synthetic location risk score from 0 to 100.,LOCATION,NUMERIC,True,2026-01-01,
+RSK-2026-000005,SAFETY_FEATURES,Safety Features Present,Whether required safety features are present.,ASSET,BOOLEAN,False,2026-01-01,
+RSK-2026-000006,APPLICANT_AGE,Applicant Age,Applicant age in completed years.,APPLICANT,NUMERIC,True,2026-01-01,
+RSK-2026-000007,PROPERTY_SECURITY,Property Security,Synthetic property security category.,ASSET,CATEGORICAL,False,2026-01-01,

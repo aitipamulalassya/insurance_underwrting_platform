@@ -1,0 +1,11 @@
+Faker>=30,<40
+psycopg[binary]>=3.2
+python-dotenv>=1.0
+
+python-multipart>=0.0.9
+pypdf>=5.0
+fastapi>=0.115
+uvicorn[standard]>=0.30
+pydantic>=2.8
+
+pytest>=8,<9

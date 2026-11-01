@@ -1,0 +1,10 @@
+coverage_option_id,product_id,coverage_code,coverage_name,description,min_limit,max_limit,is_mandatory,effective_from,effective_to
+COV-2026-000001,PRD-2026-000001,OWN_DAMAGE,Own Damage,Damage to insured vehicle,10000.00,8000000.00,True,2026-01-01,
+COV-2026-000002,PRD-2026-000001,THEFT,Theft Protection,Theft protection,10000.00,8000000.00,False,2026-01-01,
+COV-2026-000003,PRD-2026-000001,THIRD_PARTY,Third Party Liability,Third party liability cover,100000.00,10000000.00,True,2026-01-01,
+COV-2026-000004,PRD-2026-000002,FIRE,Fire Protection,Fire-related property damage,100000.00,80000000.00,True,2026-01-01,
+COV-2026-000005,PRD-2026-000002,THEFT_HOME,Home Theft Protection,Theft of covered household property,50000.00,20000000.00,False,2026-01-01,
+COV-2026-000006,PRD-2026-000002,STRUCTURE,Building Structure,Residential building structure cover,100000.00,100000000.00,True,2026-01-01,
+COV-2026-000007,PRD-2026-000003,COMM_FIRE,Commercial Fire,Fire protection for commercial property,500000.00,400000000.00,True,2026-01-01,
+COV-2026-000008,PRD-2026-000003,EQUIPMENT,Equipment Protection,Commercial equipment cover,100000.00,100000000.00,False,2026-01-01,
+COV-2026-000009,PRD-2026-000003,BUSINESS_INTERRUPTION,Business Interruption,Synthetic business interruption cover,100000.00,150000000.00,False,2026-01-01,
